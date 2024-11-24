@@ -19,8 +19,8 @@ def spotify_auth():
     except Exception as e:
         print(f"Error during authentication: {e}")
         return None
-NUM = 10
-def get_top_items(spotify, term='short_term', limit=NUM):
+NUM = 50
+def get_top_items(spotify, term='medium_term', limit=NUM):
     """
     Fetch top artists or tracks based on time range.
     term options: 'short_term' (4 weeks), 'medium_term' (6 months), 'long_term' (years)
@@ -38,15 +38,29 @@ def get_top_items(spotify, term='short_term', limit=NUM):
         for i, artist in enumerate(top_artists['items'], 1):
             print(f"{i}. {artist['name']}")
         
-        print("Your Top Albums:")
-        data = pd.read_csv("top_albums.csv")
+        albums = {}
+
+        # Extract album details from tracks
+        for item in top_tracks['items']:
+            album = item['album']
+            album_name = album['name']
+            artist_name = album['artists'][0]['name']
+            album_id = album['id']
+
+            # Avoid duplicates
+            if album_id not in albums:
+                albums[album_id] = {
+                    "Album Name": album_name,
+                    "Artist": artist_name,
+                }
+
+        # Print or Save Top Albums
+
+        print("\nTop Albums:")
         idx = 1
-        for _, row in data.iloc[:NUM].iterrows():  # `_` ignores the row index if not needed
-            album_name = row['Album_Name']  # Replace with the exact column name
-            artist = row['Artist']         # Replace with the exact column name
-            print(f"{idx} {album_name} - {artist}")
-            idx += 1
-    
+        for album_id, details in albums.items():
+            print(f"{idx}. {details['Album Name']} by {details['Artist']}")
+            idx+=1
 
     except Exception as e:
         print(f"Error fetching top items: {e}")
